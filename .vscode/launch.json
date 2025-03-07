@@ -8,7 +8,7 @@
             "console": "integratedTerminal",  // 추가된 부분
             // "console": "externalTerminal",  // 추가된 부분
             "program": "${fileDirname}\\${fileBasenameNoExtension}.exe",
-            "args": [],
+            "args": ["arg1", "arg2", "arg3","333"], // 여기에 인수를 추가합니다.
             "stopAtEntry": false,
           //  "cwd": "${workspaceFolder}",
             "cwd": "${fileDirname}", 

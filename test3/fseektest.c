@@ -1,10 +1,14 @@
+ /*
+  * author: datamining7830@gmail.com
+  * Unit Test: bin 생성
+  * Purpose: 1~512 숫자로 bin 파일 생성
+  * Description: 1~512 1바이트 단위 생성 -> ex) 15 -> 00001111
+  */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <direct.h> // _getcwd 함수 사용을 위한 헤더 파일
 
-
-
-//
 
 // 리틀 엔디안 정수를 빅 엔디안 형식으로 변환하는 함수
 unsigned int toBigEndian(unsigned int littleEndian) {
@@ -16,7 +20,12 @@ unsigned int toBigEndian(unsigned int littleEndian) {
     return bigEndian;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+
+    printf("인수 개수: %d\n", argc);
+    for (int i = 0; i < argc; i++) {
+        printf("인수[%d]: %s\n", i, argv[i]);
+    }
 
     char cwd[1024];
     if (_getcwd(cwd, sizeof(cwd)) != NULL) {
@@ -27,7 +36,10 @@ int main() {
 
 
     FILE *pFile;
-    int numbers[] = {1, 2, 3, 4, 5};
+    int numbers[512];
+    for (int i = 0; i < 512; i++) {
+        numbers[i] = i + 1;
+    }
     size_t numElements = sizeof(numbers) / sizeof(numbers[0]);
     printf("numElements: %zu\n", numElements);
 
