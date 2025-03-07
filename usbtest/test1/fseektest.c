@@ -1,6 +1,6 @@
  /*
   * author: datamining7830@gmail.com
-  * Unit Test: bin 생성
+  * Unit Test: Test를 위한  bin 생성
   * Purpose: 1~512 숫자로 bin 파일 생성
   * Description: 1~512 1바이트 단위 생성 -> ex) 15 -> 00001111
   */
