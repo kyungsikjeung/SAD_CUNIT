@@ -29,7 +29,7 @@ int main() {
     int chunkNum = 0;
     while ((bytesRead = fread(buffer, 1, sizeof(buffer), binFile)) > 0) { 
         chunkNum++;
-        printf("chunkNum: %lu bytesRead: %zu\n", chunkNum ,bytesRead);
+        //printf("chunkNum: %lu bytesRead: %zu\n", chunkNum ,bytesRead);
         for (size_t i = 0; i < bytesRead; ++i) { 
             
             crc ^= (buffer[i] << 24);  // 바이트 처리
@@ -42,7 +42,7 @@ int main() {
             }
         }  
     } 
-    printf("%08X", crc ^ xor_out);
+    printf("AAA.BIN CRC - %08X", crc ^ xor_out);
     fclose(binFile); 
   
     return EXIT_SUCCESS; 
