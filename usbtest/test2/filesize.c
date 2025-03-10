@@ -2,7 +2,8 @@
  * author: datamining7830@gmail.com
  * Unit Test:   파일크기에 따른 256바이트 Chunk 확인
  * Purpose:     파일 크기 Streaming 형식으로 전송 해야함. 
- * Description:  256바이트 단위로 Chunk로 나누어서 전송, Print  
+ * Description:  256바이트 단위로 Chunk로 나누어서 전송 dummy test, 
+ * Print 출력 어떻게 되는지 확인  
  */
 
  #include <stdio.h>
