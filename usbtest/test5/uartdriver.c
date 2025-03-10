@@ -11,8 +11,6 @@
  * Description: 
  */
 
-
-
 static char file_name[256];
 
 void setFileName(const char* name) {
