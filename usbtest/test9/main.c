@@ -8,12 +8,12 @@
 /*
  * author: datamining7830@gmail.com
  * Unit Test: 
- * Input : FileSize
- * Output : Erase Type 
- * Purpose: File Size에 따라 블럭 Erase 와 섹터 Erase 수행하는 함수 Test
+ * Input :  FileSize , streaming Data (Read from USB)
+ * Output : Page 단위 만큼의 Flash Write 
+ * Purpose: 파일 사이즈에 따라 블럭 Erase 와 섹터 Erase 수행 (Test 8 참조)
+ *          파일 사이즈에 따라 Page 단위로 Flash Write 수행하는 함수 Test (Test 9)
  * Description: USB로 파일을 입력을 받음. 파일을 입력 받아 파일 사이즈를 계산하고, 
  * 파일 사이즈에 따라 블럭 Erase와 섹터 Erase를 수행하는 함수 Test
- * 
  */
 typedef unsigned long DWORD;
 
@@ -46,17 +46,19 @@ void EraseByAddress(ERASE_TYPE type, uint32_t adress){
     printf("Erase Type: %d, Address: %d\n", tData[0], (tData[1] << 16) | (tData[2] << 8) | tData[3]);
 }
 
-
-// Erase Function
 void Erase(unsigned long fileSize){
-    DWORD chunkBlockNum  = fileSize / BLOCK_SIZE; 
-    DWORD chunkSectorNum = (fileSize - (BLOCK_SIZE * chunkBlockNum))  / SECTOR_SIZE + 1;
-    assert(chunkBlockNum == 2);
+    DWORD chunkBlockNum  = fileSize / BLOCK_SIZE;     
+    bool isRemainder = (fileSize % SECTOR_SIZE) != 0;
+    DWORD chunkSectorNum = (fileSize - (BLOCK_SIZE * chunkBlockNum))  / SECTOR_SIZE;
+    if(isRemainder){
+        chunkSectorNum += 1;
+    }
     uint32_t startAddr = 0;
     
     for(int i=0; i<chunkBlockNum; i++){
         EraseByAddress(BLOCK, startAddr);
         startAddr += BLOCK_SIZE;
+        
     }
     for(int j=0 ; j<chunkSectorNum; j++){
         EraseByAddress(SECTOR, startAddr);
@@ -70,11 +72,6 @@ void setDummyData(uint8_t* data, int size){
         data[i] = i;
     }
 }
-
-
-
-
-
 
 void SPI_PAGE_WRTIE(uint32_t addr, uint8_t size, uint8_t* data){
     uint8_t tData[PAGE_SIZE+4]; 

@@ -69,7 +69,7 @@ void Erase(unsigned long fileSize){
 }
 
 int main(){
-    unsigned long file_size = 40;
+    unsigned long file_size = 46;
     Erase(file_size);
     return 0;
 }
