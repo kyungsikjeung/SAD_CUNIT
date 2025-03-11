@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "*.par": "plaintext",
+        "uartdriver.h": "c",
+        "usb.h": "c",
+        "array": "c",
+        "string": "c",
+        "stdbool.h": "c"
+    }
+}
