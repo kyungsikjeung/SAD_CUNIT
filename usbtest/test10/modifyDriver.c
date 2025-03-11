@@ -1,24 +1,23 @@
 #include "spi_bypass_driver.h"
 
 
-/* GMSL SPI 초기 설정 */
+/* Bypass SPI Init */
 void SPI_BypassDriver_Init(){
-    GPIO_OutputBypass(SPI_EIRQ, 1u); // SPI_EIRQ HIGH
-	registerBypassSetting(); // GMSL 레지스터 세팅
+    GPIO_OutputBypass(SPI_EIRQ, 1u); // HW Enable 
+	registerBypassSetting(); // GMSL 레지스터 설정
     TIMER_DelayMsec(10); 
-    // !Ramres to RO(OUTPUT) 
-    DisableIRQ(PORTC_IRQn); //  Ramres 인터럽트 발생하지 않도록 설정, RO로 사용함.
+    DisableIRQ(PORTC_IRQn); // Ramres to RO
     gpio_pin_config_t outputConfig = {
 		kGPIO_DigitalOutput, 1,
 	};
     // RO 출력 설정
 	PORT_SetPinMux(RO_PORT, RO_PIN, kPORT_MuxAsGpio);
     GPIO_PinInit(RO_GPIO, RO_PIN, &outputConfig); 
-    // ! BNE
     gpio_pin_config_t inputConfig = {
         .pinDirection = kGPIO_DigitalInput,
         .outputLogic = 0
     };
+    // BNE 입력 설정
     PORT_SetPinMux(PORTC, BNE_PIN, kPORT_MuxAsGpio);
     PORTC->PCR[BNE_PIN] = ((PORTC->PCR[BNE_PIN] &
                       (~(PORT_PCR_PE_MASK | PORT_PCR_ISF_MASK)))
@@ -26,7 +25,7 @@ void SPI_BypassDriver_Init(){
     GPIO_PinInit(BNE_GPIO, BNE_PIN, &inputConfig);
 }
 
-/* SPI Bypass Deinit */
+/* Bypass SPI DE Init */
 void SPI_BypassDriver_DeInit(){
     GPIO_InputPin_Init(); //RO -> Ramres 전환
     PORT_SetPinMux(BNE_PORT, BNE_PIN, kPORT_MuxAlt2); // BNE 를 제어기 SPI를 위해 변경
@@ -38,7 +37,7 @@ void SPI_BypassDriver_SetRo(uint8_t value){
     GPIO_WritePinOutput(RO_GPIO,RO_PIN,value); // SET Command Mode (RO = 1)
 }
 
-/* Deserializer FIFO 데이터 처리 시 HIGH, 로우 시 처리 완료 */
+/* FIFO 처리 데이터 유 - HIGH, 없을 때 LOW (Vice Versa)  */
 bool SPI_BypassDriver_HasReadData(){
     while(!GPIO_ReadPinInput(BNE_GPIO,BNE_PIN) ){
     }
@@ -47,6 +46,7 @@ bool SPI_BypassDriver_HasReadData(){
 
 
 bool SPI_BypassDriver_waitBufferEmpty(){
+    // while(SPI_BypassDriver_HasReadData()) <- 속도 저하
     while(GPIO_ReadPinInput(BNE_GPIO,BNE_PIN) ){
     }
     return true;
@@ -94,12 +94,12 @@ void SPI_BypassDriver_SendCommandWithoutClock(uint8_t *data, uint8_t length){
     }
 }
 
-/* HW/ SW Writing Protection(SPI) */
+/* SW Writing Protection(SPI) -> HW Writing Protection은 SPI INIT에 이미 설정함 */
 void SPI_BypassDriver_FlashWriteEnable(bool enable){
     SPI_OperationCode operationCode = enable ? FLASH_WRITE_ENABLE:FLASH_WRITE_DISABLE;
     uint8_t commandData = (uint8_t)operationCode; 
     SPI_BypassDriver_SendCommand(&commandData,1); 
-    SPI_BypassDriver_SetRo(1);  //  Command Mode
+    SPI_BypassDriver_SetRo(1);  //  Command Mode , GPIO HIGH
     SPI_BypassDriver_HasReadData(); // wait Data
     SPI_BypassDriver_ByteWrite(0xA6); // Disconnection
     SPI_BypassDriver_SetRo(0); // Finish Enable/Disable Flash Driver
@@ -416,3 +416,35 @@ void SPI_BypassDriver_PageWriteAndSectorClean(uint32_t page, uint16_t offset, ui
     }
 }
 
+
+
+typedef enum {
+    BLOCK,
+    SECTOR
+}ERASE_TYPE;
+
+
+
+
+void Erase(unsigned long fileSize){
+   
+    const unsigned long BLOCK_SIZE =  65536;
+    unsigned long chunkBlockNum  = fileSize / BLOCK_SIZE;  // 지울 블럭 갯수
+    unsigned long chunkSectorNum = (fileSize - (BLOCK_SIZE * chunkBlockNum)) // 지울 섹터 갯수
+    bool isRemainder = (fileSize % SECTOR_SIZE) != 0; // 섹터 나머지 존재 여부
+    if(isRemainder){
+        chunkSectorNum += 1; // 나머지가 있으면 지울 섹터 하나 더 추가
+    }
+    uint32_t startAddr = 0; // 시작주소
+    for(unsigned long i=0; i<chunkBlockNum; i++){
+        EraseByAddress(BLOCK, startAddr);
+        startAddr += BLOCK_SIZE;
+    }
+    for(unsigned long j=0 ; j<chunkSectorNum; j++){
+        EraseByAddress(SECTOR, startAddr);
+        startAddr += SECTOR_SIZE;
+    }
+    
+
+
+}
