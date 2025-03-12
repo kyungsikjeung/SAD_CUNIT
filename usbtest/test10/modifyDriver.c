@@ -452,7 +452,7 @@ void EraseImpl(ERASE_TYPE type, uint32_t adress){
     SPI_BypassDriver_SendCommandWithoutClock(tData, 4); // Send Erz Cmd
     SPI_BypassDriver_SetRo(1); 
     SPI_BypassDriver_HasReadData();
-    for(uint8_t i=0; i<4;i++){ // Finish Erase
+    for(uint8_t i=0; i<4;i++){ // Flush Fifo Command
         uint8_t command = i == 0 ? 0xA6 : 0xFF; // Deassert SS1 + prevent buffer not empty(remvoe data)
         SPI_BypassDriver_HasReadData(); // Wait Buffer is not empty
         SPI_BypassDriver_ByteWrite(command);
@@ -464,7 +464,7 @@ void EraseImpl(ERASE_TYPE type, uint32_t adress){
 
 // EraseBy File Size Buisiness logic
 void EraseByFileSize(unsigned long fileSize){
-    const unsigned long BLOCK_SIZE =  65536;
+    const unsigned long BLOCK_SIZE =  65536; // 64kBytes
     unsigned long chunkBlockNum  = fileSize / BLOCK_SIZE;  // 지울 블럭 갯수
     unsigned long chunkSectorNum = (fileSize - (BLOCK_SIZE * chunkBlockNum)) // 지울 섹터 갯수
     bool isRemainder = (fileSize % SECTOR_SIZE) != 0; // 섹터 나머지 존재 여부
