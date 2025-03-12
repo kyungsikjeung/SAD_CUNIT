@@ -426,8 +426,44 @@ typedef enum {
 
 
 
-void Erase(unsigned long fileSize){
-   
+
+void PageWriteImpl(uint32_t addr,uint8_t* data, uint32_t size){
+    SPI_BypassDriver_FlashWriteEnable(true); 
+    uint8_t commandData[PAGE_SIZE+4]; 
+    commandData[0] = (uint8_t)PAGE_WRITE_OP; // Page Write OP
+    commandData[1] = (addr >> 16) & 0xFF;  // MSB of the memory Address
+    commandData[2] = (addr >> 8) & 0xFF;
+    commandData[3] = (addr) & 0xFF; // LSB of the memory Address
+    //SPI_BypassDriver_BurstWrite(uint8_t *commandData, uint8_t commandLength, uint8_t* data, uint32_t length) {
+    SPI_BypassDriver_BurstWrite(commandData,4,data,size);
+    TIMER_DelayMsec(1U);
+}
+
+// Erase Implementation
+void EraseImpl(ERASE_TYPE type, uint32_t adress){
+    SPI_BypassDriver_FlashWriteEnable(true); // Write Enable S/W
+    uint8_t tData[4];
+    memset(tData,0, sizeof(tData));
+    // Sector Erase D7H, 20H
+    tData[0] = (type == BLOCK) ? 0xD8 : 0xD7; 
+    tData[1] = (adress >> 16) & 0xFF; 
+    tData[2] = (adress >> 8) & 0xFF;
+    tData[3] = (adress) & 0xFF; 
+    SPI_BypassDriver_SendCommandWithoutClock(tData, 4); // Send Erz Cmd
+    SPI_BypassDriver_SetRo(1); 
+    SPI_BypassDriver_HasReadData();
+    for(uint8_t i=0; i<4;i++){ // Finish Erase
+        uint8_t command = i == 0 ? 0xA6 : 0xFF; // Deassert SS1 + prevent buffer not empty(remvoe data)
+        SPI_BypassDriver_HasReadData(); // Wait Buffer is not empty
+        SPI_BypassDriver_ByteWrite(command);
+    }   
+    SPI_BypassDriver_SetRo(0); // 데이터 전송 완료
+    uint32_t delay = (type == BLOCK) ? 1000 : 300;    // Erz 64 Blk 1000 , Sec Erz 300ms
+    TIMER_DelayMsec(delay); 
+}
+
+// EraseBy File Size Buisiness logic
+void EraseByFileSize(unsigned long fileSize){
     const unsigned long BLOCK_SIZE =  65536;
     unsigned long chunkBlockNum  = fileSize / BLOCK_SIZE;  // 지울 블럭 갯수
     unsigned long chunkSectorNum = (fileSize - (BLOCK_SIZE * chunkBlockNum)) // 지울 섹터 갯수
@@ -444,7 +480,4 @@ void Erase(unsigned long fileSize){
         EraseByAddress(SECTOR, startAddr);
         startAddr += SECTOR_SIZE;
     }
-    
-
-
 }
