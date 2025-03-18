@@ -33,12 +33,12 @@ int main(int argc, char *argv[]) {
     } else {
         perror("현재 작업 디렉토리 확인 실패");
     }
-
-
     FILE *pFile;
-    int numbers[512];
-    for (int i = 0; i < 512; i++) {
-        numbers[i] = i + 1;
+    int sectorSize = 1024;
+    int sectorNum = 49;
+    int numbers[50176];
+    for (int i = 0; i < 50176; i++) {
+        numbers[i] = (i + 1)%256;
     }
     size_t numElements = sizeof(numbers) / sizeof(numbers[0]);
     printf("numElements: %zu\n", numElements);
@@ -60,6 +60,9 @@ int main(int argc, char *argv[]) {
             return 1;
         }
     }
+    fseek(pFile, 0L, SEEK_END);
+    int sz=ftell(pFile);
+    printf("파일 크기: %d 바이트\n", sz);
 
     fclose(pFile);
     return 0;

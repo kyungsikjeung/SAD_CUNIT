@@ -5,6 +5,8 @@
         "usb.h": "c",
         "array": "c",
         "string": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "firmware.h": "c",
+        "string.h": "c"
     }
 }

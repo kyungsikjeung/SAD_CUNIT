@@ -214,8 +214,8 @@ void SPI_BypassDriver_BurstReadTest(uint8_t *rData, uint16_t rDataLength){
     // ! mockup command + Addr
     uint8_t command[5] = {FLASH_FAST_READ,0x00,0x00,0x00,0x00};
     uint8_t commandLength = sizeof(command) / sizeof(command[0]);  // 5
-	//SPI_BypassDriver_SendCommandWithoutClock(command,commandLength); // ! Step 1-5
-    SPI_BypassDriver_SendCommand(command,commandLength); // ! Step 1-5
+	SPI_BypassDriver_SendCommandWithoutClock(command,commandLength); // ! Step 1-5
+    //SPI_BypassDriver_SendCommand(command,commandLength); // ! Step 1-5
     SPI_BypassDriver_SetRo(1); // ! Step 6  
     uint8_t dummy = 0x00; // dummy 에 데이터 읽을 시 의미 없는 값 저장    
     // ! Step 7 . 8번과정 (OP + ADDR1~3  값을 제거 해주는것이 필요)
@@ -464,6 +464,8 @@ void EraseImpl(ERASE_TYPE type, uint32_t adress){
 
 // EraseBy File Size Buisiness logic
 void EraseByFileSize(unsigned long fileSize){
+    ERASE_TYPE type;
+    
     const unsigned long BLOCK_SIZE =  65536; // 64kBytes
     unsigned long chunkBlockNum  = fileSize / BLOCK_SIZE;  // 지울 블럭 갯수
     unsigned long chunkSectorNum = (fileSize - (BLOCK_SIZE * chunkBlockNum)) // 지울 섹터 갯수
@@ -473,11 +475,13 @@ void EraseByFileSize(unsigned long fileSize){
     }
     uint32_t startAddr = 0; // 시작주소
     for(unsigned long i=0; i<chunkBlockNum; i++){
-        EraseByAddress(BLOCK, startAddr);
+        type = BLOCK;
+        EraseByAddress(type, startAddr);
         startAddr += BLOCK_SIZE;
     }
     for(unsigned long j=0 ; j<chunkSectorNum; j++){
-        EraseByAddress(SECTOR, startAddr);
+        type = SECTOR;
+        EraseByAddress(type, startAddr);
         startAddr += SECTOR_SIZE;
     }
 }
