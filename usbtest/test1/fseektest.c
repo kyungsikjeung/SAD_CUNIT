@@ -36,8 +36,8 @@ int main(int argc, char *argv[]) {
     FILE *pFile;
     int sectorSize = 1024;
     int sectorNum = 49;
-    uint8_t numbers[49152];
-    for (size_t i = 0; i < 49152; i++) {
+    uint8_t numbers[196608];
+    for (size_t i = 0; i < 196608; i++) {
         numbers[i] = (i)%256;
     }
     size_t numElements = sizeof(numbers) / sizeof(numbers[0]);
